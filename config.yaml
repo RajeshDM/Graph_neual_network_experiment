@@ -1,0 +1,14 @@
+model:
+  type: gnn
+  loss_fun: cross_entropy
+gnn:
+  layers_message_passing: 2
+  embedding_size: 16
+  layer_type: generalconv
+  batchnorm: True
+  normalize_adj: False
+  aggregation_type : add
+optim:
+  optimizer: adam
+  base_lr: 0.01
+  max_epoch: 400
