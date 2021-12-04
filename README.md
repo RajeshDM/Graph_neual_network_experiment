@@ -26,3 +26,7 @@ layers\_message\_passing controls the number of GNN layers
 aggregation\_type controls the aggregation type (options are add, mean and max)  
 
 You can change any of the above parameters to see the change in behaviour of the GNN 
+
+### Teaching module:
+The teaching module for the project is in the teaching module folder. This is the slide deck that we have created as the teaching module for the submission
+
