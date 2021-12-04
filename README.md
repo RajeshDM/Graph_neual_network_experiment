@@ -7,7 +7,7 @@ This directory contains the code for running experiments for our project
 ### Running :
 `python A_Team_project.py <option>`
 
-Options available : 
+Options available :   
 help        : To see all the available options  
 config      : Run GNN with configuration from the config.yaml file  
 embedding   : To compare how different embedding sizes affect performance  
@@ -17,7 +17,7 @@ all         : Cpompare how different number of parameters affect performance
 
 
 ### Configuration :
-All the GNN configurations are stored in the config.yaml file. To change the hyperparameters, please change them in the config.yaml file.\\
+All the GNN configurations are stored in the config.yaml file. To change the hyperparameters, please change them in the config.yaml file.  
 
 In the config file, 
 
