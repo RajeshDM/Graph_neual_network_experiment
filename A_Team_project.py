@@ -1,8 +1,13 @@
 import os
+import sys
 import yaml
 import numpy as np
 import time
 import seaborn as sns
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 import matplotlib.pyplot as plt
@@ -27,7 +32,6 @@ CHECKPOINT_PATH = "./"
 
 os.makedirs(CHECKPOINT_PATH, exist_ok=True)
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-
 
 gnn_layer_by_name = {
     "GCN": geom_nn.GCNConv,
@@ -216,9 +220,23 @@ def print_results(result_dict):
     if "val" in result_dict:
         print(f"Val accuracy:   {(100.0*result_dict['val']):4.2f}%")
     print(f"Test accuracy:  {(100.0*result_dict['test']):4.2f}%")
-    print(f"Number parameters:  {(result_dict['number_params']):f}")
+    #print(f"Number parameters:  {(result_dict['number_params']):}")
 
 
+def plot (x_value,y_value,x_axis_label, y_axis_label,categorical=False):
+    #colors = np.random.rand(4,)
+    colors = np.random.rand(len(y_value))
+    if categorical == True:
+        x_value = [str(elem) for elem in x_value]
+        plt.bar(x_value, y_value)
+    else :
+        #plt.xticks(x_value)
+        plt.scatter(number_parameters, testing_accuracies, c=colors, alpha=0.5)
+    plt.title(str(x_axis_label) + ' vs ' + str(y_axis_label))
+    plt.xlabel(str(x_axis_label))
+    plt.ylabel(str(y_axis_label))
+    plt.savefig(str(x_axis_label) + '_vs_' + str(y_axis_label) + ".png")
+    plt.show()
 
 '''
 node_mlp_model, node_mlp_result = train_node_classifier(model_name="MLP",
@@ -229,58 +247,92 @@ node_mlp_model, node_mlp_result = train_node_classifier(model_name="MLP",
 
 print_results(node_mlp_result)
 '''
-configs = get_config("config.yaml")
 
-hidden_vector_sizes = [2,4,8,16,32,64]
-num_layers = [1,2,4,6,8]
-aggregation_functions = ['add', 'mean','max']
-hidden_vector_sizes = [16]
-num_layers = [2]
-#aggregation_functions = ['add']
-hidden_vector_size = 16
-num_layer = 2
-#testing_acc = []
-
-#num_layers = [configs['gnn']['layers_message_passing']]
-#aggregation_types = [configs['gnn']['aggregation_type']]
-#hidden_vector_sizes = [configs['gnn']['embedding_size']]
-max_epochs = configs['optim']['max_epoch']
-
-testing_accuracies = []
-number_parameters = []
-
-start_time = time.time()
-for hidden_vector_size in hidden_vector_sizes:
-    for num_layer in num_layers:
-        for aggregation_function in aggregation_functions :
-            node_gnn_model, node_gnn_result = train_node_classifier(model_name="GNN",
-                                                                    layer_name="GCN",
-                                                                    dataset=cora_dataset,
-                                                                    c_hidden=hidden_vector_size,
-                                                                    num_layers=num_layer,
-                                                                    dp_rate=0.1,
-                                                                    agg_type=aggregation_function)
-            testing_accuracies.append(node_gnn_result['test'])
-            number_parameters.append(node_gnn_result['number_params'])
-            print_results(node_gnn_result)
-
-def plot (x_value,y_value,x_axis_label, y_axis_label,categorical=False):
-    #colors = np.random.rand(4,)
-    colors = np.random.rand(len(y_value))
-    if categorical == True:
-        x_value = [str(elem) for elem in x_value]
-        plt.bar(x_value, y_value)
+if __name__ == "__main__":
+    #print(f"Arguments count: {len(sys.argv)}")
+    if len(sys.argv) == 1 :
+        print ("Usage :", sys.argv[0], " <option>")
+        exit()
+    #for i, arg in enumerate(sys.argv):
+    #    print(f"Argument {i:>6}: {arg}")
     else :
-        plt.xticks(x_value)
-        plt.scatter(number_parameters, testing_accuracies, c=colors, alpha=0.5)
-    plt.title(str(x_axis_label) + ' vs ' + str(y_axis_label))
-    plt.xlabel(str(x_axis_label))
-    plt.ylabel(str(y_axis_label))
-    plt.savefig(str(x_axis_label) + '_vs_' + str(y_axis_label) + ".png")
-    plt.show()
+        option = sys.argv[1]
 
-print ("Time taken to run" , time.time()-start_time)
-#plot (hidden_vector_sizes,testing_accuracies,"Embedding size","Testing Accuracy",categorical=True)
-#plot (num_layers,testing_accuracies,"Number of layers","Testing Accuracy",categorical=True)
-plot (aggregation_functions,testing_accuracies,"Aggregation Function","Testing Accuracy",categorical=True)
+    configs = get_config("config.yaml")
 
+    hidden_vector_sizes = [2,4,8,16,32,64]
+    num_layers = [1,2,4,6,8]
+    aggregation_functions = ['add', 'mean','max']
+    #testing_acc = []
+        
+
+    if option == "help" :
+        print ("Usage :", sys.argv[0], " <option>")
+        print ("Options available : ")
+        print ("help        : To see all the available options")
+        print ("config      : Run GNN with configuration from the config.yaml file")
+        print ("embedding   : To compare how different embedding sizes affect performance")
+        print ("layers      : To compare how different number of GNN layers  affect performance")
+        print ("aggregation : To compare how different aggregation functions affect performance")
+        print ("all         : Cpompare how different number of parameters affect performance")
+        exit()
+
+    if option == "config":
+        num_layers = [configs['gnn']['layers_message_passing']]
+        aggregation_functions = [configs['gnn']['aggregation_type']]
+        hidden_vector_sizes = [configs['gnn']['embedding_size']]
+    elif option.lower() == "embedding" :
+        num_layers = [2]
+        aggregation_functions = ['add']
+    elif option.lower() == "layers":
+        hidden_vector_sizes = [16]
+        aggregation_functions = ['add']
+    elif option.lower() == "aggregation":
+        hidden_vector_sizes = [16]
+        num_layers = [2]
+    elif option.lower() == "all":
+        pass
+    else:
+        print ("Invalid Option")
+        print ("Please run:", sys.argv[0], " help: to see all options" )
+        exit() 
+        
+    max_epochs = configs['optim']['max_epoch']
+
+    testing_accuracies = []
+    number_parameters = []
+
+    start_time = time.time()
+    for hidden_vector_size in hidden_vector_sizes:
+        for num_layer in num_layers:
+            for aggregation_function in aggregation_functions :
+                print ("####################################################")
+                print ("Config being run     : ")
+                print ("Embedding Size       : ", hidden_vector_size)
+                print ("Number layers        : ", num_layer)
+                print ("Aggregation function : ", aggregation_function)
+                node_gnn_model, node_gnn_result = train_node_classifier(model_name="GNN",
+                                                                        layer_name="GCN",
+                                                                        dataset=cora_dataset,
+                                                                        c_hidden=hidden_vector_size,
+                                                                        num_layers=num_layer,
+                                                                        dp_rate=0.1,
+                                                                        agg_type=aggregation_function)
+                testing_accuracies.append(node_gnn_result['test'])
+                number_parameters.append(node_gnn_result['number_params'])
+                print_results(node_gnn_result)
+
+
+    print ("Time taken to run" , time.time()-start_time)
+    if option.lower() == "config":
+        exit()
+    elif option.lower() == "embedding" :
+        plot (hidden_vector_sizes,testing_accuracies,"Embedding size","Testing Accuracy",categorical=True)
+    elif option.lower() == "layers":
+        plot (num_layers,testing_accuracies,"Number of layers","Testing Accuracy",categorical=True)
+    elif option.lower() == "aggregation":
+        plot (aggregation_functions,testing_accuracies,"Aggregation Function","Testing Accuracy",categorical=True)
+    elif option.lower() == "all":
+        plot (number_parameters,testing_accuracies,"Number of Parameters","Testing Accuracy",categorical=False)
+
+    exit()
