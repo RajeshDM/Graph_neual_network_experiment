@@ -10,5 +10,7 @@ tensorboard==2.0.0
 jupyter==1.0.0
 ipywidgets==7.5.1
 seaborn
-torch-geometric
 pytorch-lightning
+torch-sparse
+torch-scatter
+torch-geometric
