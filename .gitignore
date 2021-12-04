@@ -132,3 +132,4 @@ dmypy.json
 *.png
 data/
 NodeLevelGNN/
+*.swp
